@@ -1,0 +1,44 @@
+name: Release
+# Push a tag like v1.0.0 to build every binary on GitHub's servers and publish a Release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write      # create the GitHub Release
+  id-token: write      # sign build provenance
+  attestations: write  # publish build provenance
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version-file: go/go.mod }
+
+      - name: Test
+        working-directory: go
+        run: go test ./...
+
+      - name: Build all platforms
+        working-directory: go
+        env: { CGO_ENABLED: "0" }
+        run: |
+          mkdir -p ../dist
+          for target in windows/amd64 windows/arm64 darwin/amd64 darwin/arm64 linux/amd64 linux/arm64; do
+            os=${target%/*}; arch=${target#*/}; ext=""; [ "$os" = windows ] && ext=".exe"
+            GOOS=$os GOARCH=$arch go build -trimpath -buildvcs=false \
+              -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" \
+              -o "../dist/psn-account-id-${os}-${arch}${ext}" .
+          done
+          cp ../powershell/Get-PsnAccountId.ps1 ../python/psn_account_id.py ../dist/
+          cd ../dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with: { subject-path: "dist/*" }
+
+      - name: Publish GitHub Release
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --generate-notes --verify-tag

@@ -1,0 +1,49 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: go } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version-file: go/go.mod }
+      - run: test -z "$(gofmt -l .)"
+      - run: go vet ./...
+      - run: go test -v ./...
+      - run: GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -o /dev/null .
+
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: { python: ["3.9", "3.13"] }
+    defaults: { run: { working-directory: python } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "${{ matrix.python }}" }
+      - run: python -m unittest -v
+
+  powershell:
+    # Windows PowerShell 5.1 is what a stock Windows 11 PC has - test exactly that.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse and run with Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $errs = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile("$PWD\powershell\Get-PsnAccountId.ps1", [ref]$null, [ref]$errs)
+          if ($errs.Count) { $errs; exit 1 }
+          $r = & .\powershell\Get-PsnAccountId.ps1 -Convert 1234567890123456789 -Json | ConvertFrom-Json
+          if ($r.account_id_base64 -ne 'FYHpffQQIhE=') { throw "unexpected: $r" }
+          $r = & .\powershell\Get-PsnAccountId.ps1 -Convert 'FYHpffQQIhE=' -Json | ConvertFrom-Json
+          if ($r.account_id_number -ne '1234567890123456789') { throw "unexpected: $r" }
+          'PowerShell 5.1 OK'
