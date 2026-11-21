@@ -56,7 +56,7 @@ chiaki-ng has its own built-in Sony login and can fetch the ID itself. If you pr
 |---|---|---|
 | **Windows / macOS / Linux app** (`go/`) | Most people | Download from [Releases](../../releases/latest) and double-click (macOS/Linux: run it in a terminal) |
 | **PowerShell script** (`powershell/Get-PsnAccountId.ps1`) | Windows users who want to **read the code before running it**; uses the PowerShell built into Windows 10/11 | See below |
-| **Python script** (`python/psn_account_id.py`) | People who already have Python 3.9+ | `python psn_account_id.py` |
+| **Python script** (`python/psn_account_id.py`) | People who already have Python 3.10+ | `python psn_account_id.py` |
 
 ### Running the PowerShell version
 Windows blocks downloaded scripts by default. Open the file in Notepad and read it first, then open **PowerShell** in the folder where you saved it and run:
@@ -107,7 +107,7 @@ They identify the **app** to Sony, not you. They belong to Sony's official **PS 
 ## Build and test it yourself
 ```bash
 cd go && go test ./... && go build .               # Go 1.24+
-cd python && python -m unittest -v                  # Python 3.9+
+cd python && python -m unittest -v                  # Python 3.10+
 pwsh -File powershell/Get-PsnAccountId.ps1 -Convert 1234567890123456789
 ```
 CI ([`ci.yml`](.github/workflows/ci.yml)) runs the Go and Python tests and tests the PowerShell script on real **Windows PowerShell 5.1**, in English and Spanish. Pushing a tag such as `v1.0.0` builds and publishes a release.

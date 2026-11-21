@@ -2,7 +2,7 @@
 """psn-account-id: get your PSN Account ID for PS5 Remote Play using only Sony's own login.
 
 Talks only to auth.api.sonyentertainmentnetwork.com over HTTPS. Saves nothing.
-Standard library only. Python 3.9+.  Usage:  python3 psn_account_id.py [--json] [--no-browser]
+Standard library only. Python 3.10+.  Usage:  python3 psn_account_id.py [--json] [--no-browser]
                                               python3 psn_account_id.py --convert <id>
 """
 from __future__ import annotations

@@ -56,7 +56,7 @@ chiaki-ng tiene su propio inicio de sesión de Sony integrado y puede obtener el
 |---|---|---|
 | **Programa para Windows / macOS / Linux** (`go/`) | La mayoría de la gente | Descárgalo desde [Releases](../../releases/latest) y haz doble clic (en macOS/Linux, ejecútalo en un terminal) |
 | **Script de PowerShell** (`powershell/Get-PsnAccountId.ps1`) | Usuarios de Windows que quieren **leer el código antes de ejecutarlo**; usa el PowerShell que ya viene con Windows 10/11 | Ver abajo |
-| **Script de Python** (`python/psn_account_id.py`) | Quien ya tenga Python 3.9 o superior | `python psn_account_id.py` |
+| **Script de Python** (`python/psn_account_id.py`) | Quien ya tenga Python 3.10 o superior | `python psn_account_id.py` |
 
 ### Ejecutar la versión de PowerShell
 Windows bloquea por defecto los scripts descargados. Ábrelo primero en el Bloc de notas y léelo; después abre **PowerShell** en la carpeta donde lo guardaste y ejecuta:
@@ -107,7 +107,7 @@ Identifican a la **aplicación** ante Sony, no a ti. Pertenecen a la aplicación
 ## Compilarlo y probarlo tú mismo
 ```bash
 cd go && go test ./... && go build .               # Go 1.24+
-cd python && python -m unittest -v                  # Python 3.9+
+cd python && python -m unittest -v                  # Python 3.10+
 pwsh -File powershell/Get-PsnAccountId.ps1 -Convert 1234567890123456789 -Lang es
 ```
 La integración continua ([`ci.yml`](.github/workflows/ci.yml)) ejecuta las pruebas de Go y Python y prueba el script de PowerShell en **Windows PowerShell 5.1** real, en inglés y en español. Al publicar una etiqueta como `v1.0.0` se compila y publica una versión.
