@@ -91,7 +91,7 @@ El número y el texto Base64 son **el mismo ID escrito de dos formas**. Sony dev
 - **No usa bibliotecas de terceros.** Las versiones en Go, Python y PowerShell usan solo la biblioteca estándar.
 - **Las versiones se compilan en público.** Cada archivo publicado lo compila GitHub Actions a partir del código de este repositorio ([`release.yml`](.github/workflows/release.yml)), va acompañado de `SHA256SUMS.txt` y lleva una **atestación de procedencia firmada**. Puedes verificar una descarga con:
   ```
-  gh attestation verify psn-account-id-windows-amd64.exe --repo <propietario>/psn-account-id
+  gh attestation verify psn-account-id-windows-amd64.exe --repo metalito/psn-account-id
   ```
 
 ### ¿Qué son el "client ID" y el "client secret" del código?

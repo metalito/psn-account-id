@@ -91,7 +91,7 @@ The number and the Base64 text are **the same ID written two ways**. Sony return
 - **It uses no third-party libraries.** Go, Python and PowerShell are each standard library only, and each is about 150 lines.
 - **Releases are built in public.** Every release file is built by GitHub Actions from the code in this repo ([`release.yml`](.github/workflows/release.yml)), comes with `SHA256SUMS.txt`, and carries a **signed build-provenance attestation**. You can verify a download with:
   ```
-  gh attestation verify psn-account-id-windows-amd64.exe --repo <owner>/psn-account-id
+  gh attestation verify psn-account-id-windows-amd64.exe --repo metalito/psn-account-id
   ```
 
 ### What are the "client ID" and "client secret" in the code?
