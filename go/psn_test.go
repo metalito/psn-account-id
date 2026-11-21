@@ -53,6 +53,10 @@ func TestLoginURL(t *testing.T) {
 }
 
 func TestFlowAgainstFakeSony(t *testing.T) {
+	t.Setenv("LANG", "en_US.UTF-8")
+	t.Setenv("LANGUAGE", "")
+	t.Setenv("LC_ALL", "")
+	t.Setenv("LC_MESSAGES", "")
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if id, secret, ok := r.BasicAuth(); !ok || id != clientID || secret != clientSecret {
 			w.WriteHeader(401)

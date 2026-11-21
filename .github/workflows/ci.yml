@@ -46,4 +46,7 @@ jobs:
           if ($r.account_id_base64 -ne 'FYHpffQQIhE=') { throw "unexpected: $r" }
           $r = & .\powershell\Get-PsnAccountId.ps1 -Convert 'FYHpffQQIhE=' -Json | ConvertFrom-Json
           if ($r.account_id_number -ne '1234567890123456789') { throw "unexpected: $r" }
-          'PowerShell 5.1 OK'
+          # Spanish text must survive PowerShell 5.1's file decoding (needs the UTF-8 BOM).
+          $es = & .\powershell\Get-PsnAccountId.ps1 -Lang es -Convert 1234567890123456789 6>&1 | Out-String
+          if ($es -notmatch "N$([char]0xFA)mero") { throw "Spanish accents broken: $es" }
+          'PowerShell 5.1 OK (English + Spanish)'

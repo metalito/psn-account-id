@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -39,7 +38,7 @@ func loginURL() string {
 	for k, v := range map[string]string{
 		"service_entity": "urn:service-entity:psn", "response_type": "code",
 		"client_id": clientID, "redirect_uri": redirectURI, "scope": scope,
-		"request_locale": "en_US", "ui": "pr", "service_logo": "ps",
+		"request_locale": sonyLocale(), "ui": "pr", "service_logo": "ps",
 		"layout_type": "popup", "smcid": "remoteplay", "prompt": "always",
 		"PlatformPrivacyWs1": "minimal",
 	} {
@@ -52,25 +51,25 @@ func loginURL() string {
 func extractCode(pasted string) (string, error) {
 	text := strings.Trim(strings.TrimSpace(pasted), `"'`)
 	if text == "" {
-		return "", errors.New("nothing was pasted")
+		return "", errors.New(t("nothing_pasted"))
 	}
 	lower := strings.ToLower(text)
 	if strings.HasPrefix(lower, "http://") || strings.HasPrefix(lower, "https://") {
 		if !strings.HasPrefix(text, redirectURI+"?") {
-			return "", fmt.Errorf("that address is not Sony's redirect page; it must start with\n  %s?code=", redirectURI)
+			return "", errors.New(t("not_redirect", redirectURI))
 		}
 		u, err := url.Parse(text)
 		if err != nil {
-			return "", errors.New("could not read that address")
+			return "", errors.New(t("bad_address"))
 		}
 		codes := u.Query()["code"]
 		if len(codes) != 1 || codes[0] == "" {
-			return "", errors.New("no 'code=' found in that address; sign in again and copy the whole address")
+			return "", errors.New(t("no_code"))
 		}
 		text = codes[0]
 	}
 	if strings.ContainsAny(text, " \t\r\n") || len(text) > 2048 {
-		return "", errors.New("that doesn't look like a valid code")
+		return "", errors.New(t("invalid_code"))
 	}
 	return text, nil
 }
@@ -87,14 +86,14 @@ func convert(value string) (Result, error) {
 	if n, err := strconv.ParseUint(value, 10, 64); err == nil {
 		return Result{Base64: toBase64(n), Number: value}, nil
 	} else if value != "" && strings.Trim(value, "0123456789") == "" {
-		return Result{}, errors.New("number is too large to be a PSN Account ID")
+		return Result{}, errors.New(t("too_large"))
 	}
 	raw, err := base64.StdEncoding.DecodeString(value)
 	if err != nil {
-		return Result{}, errors.New("not a number and not valid Base64")
+		return Result{}, errors.New(t("not_b64"))
 	}
 	if len(raw) != 8 {
-		return Result{}, errors.New("a Base64 Account ID must decode to exactly 8 bytes")
+		return Result{}, errors.New(t("wrong_len"))
 	}
 	return Result{Base64: value, Number: strconv.FormatUint(binary.LittleEndian.Uint64(raw), 10)}, nil
 }
@@ -119,14 +118,14 @@ func sonyRequest(method, endpoint string, form url.Values, out any) error {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("could not reach Sony (%v); check your internet connection", err)
+		return errors.New(t("unreachable", err))
 	}
 	defer resp.Body.Close()
 	switch {
 	case resp.StatusCode == 400 || resp.StatusCode == 401:
-		return errors.New("Sony rejected the code; codes work once and expire within minutes: run the tool again and paste faster")
+		return errors.New(t("rejected"))
 	case resp.StatusCode != 200:
-		return fmt.Errorf("Sony returned HTTP %d; try again later", resp.StatusCode)
+		return errors.New(t("http_status", resp.StatusCode))
 	}
 	return json.NewDecoder(resp.Body).Decode(out)
 }
@@ -141,7 +140,7 @@ func fetchAccount(code string) (Result, error) {
 		return Result{}, err
 	}
 	if tok.AccessToken == "" {
-		return Result{}, errors.New("Sony did not return an access token")
+		return Result{}, errors.New(t("no_token"))
 	}
 	var info struct {
 		UserID   json.Number `json:"user_id"`
@@ -152,7 +151,7 @@ func fetchAccount(code string) (Result, error) {
 	}
 	r, err := convert(info.UserID.String())
 	if err != nil || r.Number == "" {
-		return Result{}, errors.New("Sony did not return a numeric account number")
+		return Result{}, errors.New(t("no_number"))
 	}
 	r.OnlineID = info.OnlineID
 	return r, nil

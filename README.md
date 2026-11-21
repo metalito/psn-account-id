@@ -1,5 +1,7 @@
 # psn-account-id
 
+**English** | [Español](README.es.md)
+
 **Get your PlayStation Network Account ID safely, using only Sony's own login page, so you can stream your PS5 to your PC.**
 
 No third-party website, no account to create, nothing saved, and the code is open for anyone to read.
@@ -38,6 +40,8 @@ We are **not** saying that site steals accounts. We are saying **you should neve
 5. Paste it into the tool's window (right-click pastes in the Windows console) and press Enter. **Do it within a minute or two**, because the code expires quickly.
 6. The tool shows your Account ID. Copy the **Base64** line, for example `FYHpffQQIhE=`.
 
+The tool switches to Spanish automatically when Windows is set to Spanish. Force a language with `--lang en` or `--lang es`.
+
 ### Then, in Veyra
 Open the PS5 / Remote Play panel. **Don't press "Get Account ID"**; paste your ID into the Account ID field instead. Then, on the PS5, go to **Settings → System → Remote Play → Link Device** and type the 8-digit code it shows into Veyra. Veyra remembers the console afterwards.
 
@@ -69,6 +73,13 @@ powershell -ExecutionPolicy Bypass -File .\Get-PsnAccountId.ps1
 | `--json` / `-Json` | Print the result as JSON, for scripts |
 | `--no-browser` / `-NoBrowser` | Print Sony's link instead of opening the browser |
 | `--convert <id>` / `-Convert <id>` | Convert an Account ID between its number and Base64 forms, offline |
+| `--lang en` / `-Lang en` | Language: `en` (English) or `es` (Spanish). Default: the system language |
+
+### Can I save the result to a file?
+The tool deliberately saves nothing itself. To keep it, run `psn-account-id --json > my-psn-id.json`, or in PowerShell `.\Get-PsnAccountId.ps1 -Json | Out-File my-psn-id.json`. Saving the Account ID is harmless: it isn't a secret, and the tool never shows or keeps the login token.
+
+### Why Base64?
+The number and the Base64 text are **the same ID written two ways**. Sony returns your account as a number, and the PS5 uses it packed into 8 bytes. Base64 is the standard way to write those bytes as text. **chiaki-ng** accepts only Base64; **Veyra** accepts either. That's why the tool shows both, with Base64 first.
 
 ---
 
@@ -99,7 +110,7 @@ cd go && go test ./... && go build .               # Go 1.24+
 cd python && python -m unittest -v                  # Python 3.9+
 pwsh -File powershell/Get-PsnAccountId.ps1 -Convert 1234567890123456789
 ```
-CI ([`ci.yml`](.github/workflows/ci.yml)) runs the Go and Python tests and tests the PowerShell script on real **Windows PowerShell 5.1**. Pushing a tag such as `v1.0.0` builds and publishes a release.
+CI ([`ci.yml`](.github/workflows/ci.yml)) runs the Go and Python tests and tests the PowerShell script on real **Windows PowerShell 5.1**, in English and Spanish. Pushing a tag such as `v1.0.0` builds and publishes a release.
 
 ## Disclaimer
 Not affiliated with or endorsed by Sony Interactive Entertainment. "PlayStation", "PS5" and "PSN" are Sony trademarks. Like chiaki-ng, this tool signs in as Sony's Remote Play app, which may not be permitted by Sony's terms of service; use it at your own discretion. It was written as a safer alternative to third-party lookup sites. Licensed under the [MIT License](LICENSE).

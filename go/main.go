@@ -30,20 +30,20 @@ func openBrowser(u string) {
 
 func interactiveLogin(noBrowser bool, out io.Writer, in *bufio.Reader) (Result, error) {
 	u := loginURL()
-	fmt.Fprintln(out, "Step 1. Sign in on Sony's page. Check the address bar shows a sony.com or")
-	fmt.Fprintln(out, "        sonyentertainmentnetwork.com address before typing your password.")
+	fmt.Fprintln(out, t("step1a"))
+	fmt.Fprintln(out, t("step1b"))
 	fmt.Fprintln(out, "\n   "+u+"\n")
 	if !noBrowser {
 		openBrowser(u)
 	}
-	fmt.Fprintln(out, "Step 2. After signing in you land on a page starting with")
+	fmt.Fprintln(out, t("step2a"))
 	fmt.Fprintln(out, "        "+redirectURI+"?code=...")
-	fmt.Fprintln(out, "        (it may look blank or show an error - that's normal).")
-	fmt.Fprintln(out, "        Copy the WHOLE address from the address bar and paste it below.")
-	fmt.Fprint(out, "\nPaste here (right-click pastes in the Windows console): ")
+	fmt.Fprintln(out, t("step2b"))
+	fmt.Fprintln(out, t("step2c"))
+	fmt.Fprint(out, "\n"+t("paste"))
 	line, err := in.ReadString('\n')
 	if err != nil && line == "" {
-		return Result{}, fmt.Errorf("no input")
+		return Result{}, fmt.Errorf("%s", t("no_input"))
 	}
 	code, err := extractCode(line)
 	if err != nil {
@@ -53,12 +53,15 @@ func interactiveLogin(noBrowser bool, out io.Writer, in *bufio.Reader) (Result, 
 }
 
 func run(args []string, stdout, stderr io.Writer, in *bufio.Reader) int {
+	lang = pickLang(args)
 	fs := flag.NewFlagSet("psn-account-id", flag.ContinueOnError)
 	fs.SetOutput(stderr)
-	asJSON := fs.Bool("json", false, "print the result as JSON")
-	noBrowser := fs.Bool("no-browser", false, "don't open the browser, just print the link")
-	conv := fs.String("convert", "", "convert an Account ID between number and Base64 (offline)")
-	showVersion := fs.Bool("version", false, "print the version")
+	fs.Usage = func() { fmt.Fprintln(stderr, t("usage")); fs.PrintDefaults() }
+	asJSON := fs.Bool("json", false, t("flag_json"))
+	noBrowser := fs.Bool("no-browser", false, t("flag_nobrowser"))
+	conv := fs.String("convert", "", t("flag_convert"))
+	showVersion := fs.Bool("version", false, t("flag_version"))
+	_ = fs.String("lang", "", t("flag_lang"))
 	if err := fs.Parse(args); err != nil {
 		return 2
 	}
@@ -78,7 +81,7 @@ func run(args []string, stdout, stderr io.Writer, in *bufio.Reader) int {
 		r, err = interactiveLogin(*noBrowser, info, in)
 	}
 	if err != nil {
-		fmt.Fprintln(stderr, "\nError:", err)
+		fmt.Fprintln(stderr, "\n"+t("error"), err)
 		return 1
 	}
 	if *asJSON {
@@ -87,13 +90,13 @@ func run(args []string, stdout, stderr io.Writer, in *bufio.Reader) int {
 		_ = enc.Encode(r)
 		return 0
 	}
-	fmt.Fprintln(stdout, "\nYour PSN Account ID (paste this into Veyra or chiaki-ng):")
+	fmt.Fprintln(stdout, "\n"+t("result"))
 	fmt.Fprintln(stdout, "\n   Base64:  "+r.Base64)
-	fmt.Fprintln(stdout, "   Number:  "+r.Number)
+	fmt.Fprintln(stdout, "   "+t("number")+" "+r.Number)
 	if r.OnlineID != "" {
-		fmt.Fprintln(stdout, "   Account: "+r.OnlineID+"  (check this is you)")
+		fmt.Fprintln(stdout, "   "+t("account")+" "+r.OnlineID+"  "+t("check_you"))
 	}
-	fmt.Fprintln(stdout, "\nThis ID never changes - you only need it once. Nothing was saved.")
+	fmt.Fprintln(stdout, "\n"+t("footer"))
 	return 0
 }
 
@@ -102,7 +105,7 @@ func main() {
 	code := run(os.Args[1:], os.Stdout, os.Stderr, in)
 	// When double-clicked on Windows the console closes immediately; keep it open.
 	if runtime.GOOS == "windows" && len(os.Args) == 1 {
-		fmt.Print("\nPress Enter to close...")
+		fmt.Print("\n" + t("press_enter"))
 		_, _ = in.ReadString('\n')
 	}
 	os.Exit(code)
